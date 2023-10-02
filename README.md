@@ -49,6 +49,23 @@ development team will need an API (preferably GraphQL) to connect to which will 
 be able to perform the following operations (already sorted by priority):
 
 - Provide the energy consumption per transaction for a specific block.
+```bash
+# Post Request: http://localhost:4000/graphql
+# Body
+{
+	"query": "{
+    transactionsEnergyByBlock(blockHash: \"000000000000000000042610bf24d1f0270abef3c1adc13852c8b7e72a624854\") {
+      blockHash, 
+      transactions {
+        transactionHash, 
+        energyConsumption
+      }
+    }
+  }"
+}
+
+```
+
 - Provide the total energy consumption per day in the last `x` number of days.
 - Advanced Feature: Optimize the number of calls made to the Blockchain API to avoid asking for the
   same information multiple times.
