@@ -3,22 +3,30 @@ import { schemaComposer } from "graphql-compose";
 const TransactionTC = schemaComposer.createObjectTC({
   name: "Transaction",
   fields: {
-    transactionHash: "String",
-    energyConsumption: "Float",
-    size: "Int",
+    transactionHash: "ID!",
+    energyConsumption: "Float!",
+    size: "Int!",
   },
 });
 
 const BlockTC = schemaComposer.createObjectTC({
   name: "Block",
   fields: {
-    blockHash: "String",
-    energyConsumption: "Float",
-    size: "Int",
+    blockHash: "ID!",
+    energyConsumption: "Float!",
+    size: "Int!",
     transactions: {
-      type: [TransactionTC],
+      type: [TransactionTC]!,
     },
   },
 });
 
-export { TransactionTC, BlockTC };
+const WalletTC = schemaComposer.createObjectTC({
+  name: "Wallet",
+  fields: {
+    walletAddress: "ID",
+    energyConsumption: "Float",
+  },
+});
+
+export { TransactionTC, BlockTC, WalletTC };

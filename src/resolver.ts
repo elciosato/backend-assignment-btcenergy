@@ -1,5 +1,5 @@
 import { schemaComposer } from "graphql-compose";
-import { BlockTC } from "./types";
+import { BlockTC, WalletTC } from "./types";
 import { blockchainApi } from "./blockchainApi";
 
 const ENERGY_COST = 4.56;
@@ -15,11 +15,16 @@ type RawBlockResponse = {
   tx: [transactionResponse];
 };
 
+type RawWalletResponse = {
+  address: string;
+  txs: [transactionResponse];
+};
+
 const transactionsEnergyByBlockResolver = schemaComposer.createResolver({
   name: "transactionsEnergyByBlock",
   type: BlockTC,
   args: {
-    blockHash: "String!",
+    blockHash: "ID!",
   },
   resolve: async ({ source, args, context, info }) => {
     const { blockHash } = args;
@@ -43,20 +48,33 @@ const transactionsEnergyByBlockResolver = schemaComposer.createResolver({
 
     return block;
   },
-
-  // hello2: {
-  //   type: "[Block]",
-  //   resolve: async () => {
-  //     const result = await axios.get(
-  //       "https://blockchain.info/blocks/1695247200000?format=json"
-  //     );
-
-  //     const blocks = result.data.map((b) => {
-  //       return { hash: b.hash };
-  //     });
-  //     return blocks;
-  //   },
-  // },
 });
 
-export { transactionsEnergyByBlockResolver };
+const totalEnergyByWalletResolver = schemaComposer.createResolver({
+  name: "totalEnergyByWallet",
+  type: WalletTC,
+  args: {
+    walletAddress: "ID!",
+  },
+  resolve: async ({ source, args, context, info }) => {
+    const { walletAddress } = args;
+    console.log(walletAddress);
+    const { data, status } = await blockchainApi.get<RawWalletResponse>(
+      `/rawaddr/${walletAddress}`
+    );
+
+    let size = 0;
+    data.txs.forEach((t) => {
+      size = size + Number(t.size);
+    });
+    const wallet = {
+      walletAddress: data.address,
+      energyConsumption: size * ENERGY_COST,
+      size,
+    };
+
+    return wallet;
+  },
+});
+
+export { transactionsEnergyByBlockResolver, totalEnergyByWalletResolver };

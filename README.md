@@ -63,13 +63,24 @@ be able to perform the following operations (already sorted by priority):
     }
   }"
 }
-
 ```
 
 - Provide the total energy consumption per day in the last `x` number of days.
 - Advanced Feature: Optimize the number of calls made to the Blockchain API to avoid asking for the
   same information multiple times.
 - Expert Feature: Provide the total energy consumption of all transactions performed by a specific wallet address.
+```bash
+# Post Request: http://localhost:4000/graphql
+# Body
+{
+  "query": "{
+    totalEnergyByWallet(walletAddress: \"1K6KoYC69NnafWJ7YgtrpwJxBLiijWqwa6\") {
+      walletAddress, 
+      energyConsumption
+    }
+  }"
+}
+```
 
 Even if it is too soon in the product's lifetime to think about non-functional requirements, it will be beneficial to
 build it considering that we hope to scale the solution and avoid significant refactoring.
