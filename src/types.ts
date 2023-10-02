@@ -29,4 +29,35 @@ const WalletTC = schemaComposer.createObjectTC({
   },
 });
 
-export { TransactionTC, BlockTC, WalletTC };
+const DayConsumptionTC = schemaComposer.createObjectTC({
+  name: "DayConsumption",
+  fields: {
+    date: "String",
+    energyConsumption: "Float",
+  },
+});
+
+type TransactionResponse = {
+  hash: string;
+  size: string;
+};
+
+type RawBlockResponse = {
+  hash: string;
+  size: number;
+  tx: [TransactionResponse];
+};
+
+type RawWalletResponse = {
+  address: string;
+  txs: [TransactionResponse];
+};
+
+export {
+  TransactionTC,
+  BlockTC,
+  WalletTC,
+  DayConsumptionTC,
+  RawBlockResponse,
+  RawWalletResponse,
+};

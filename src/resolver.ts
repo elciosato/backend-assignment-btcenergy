@@ -1,24 +1,13 @@
 import { schemaComposer } from "graphql-compose";
-import { BlockTC, WalletTC } from "./types";
+import {
+  BlockTC,
+  RawBlockResponse,
+  RawWalletResponse,
+  WalletTC,
+} from "./types";
 import { blockchainApi } from "./blockchainApi";
 
 const ENERGY_COST = 4.56;
-
-type transactionResponse = {
-  hash: string;
-  size: string;
-};
-
-type RawBlockResponse = {
-  hash: string;
-  size: number;
-  tx: [transactionResponse];
-};
-
-type RawWalletResponse = {
-  address: string;
-  txs: [transactionResponse];
-};
 
 const transactionsEnergyByBlockResolver = schemaComposer.createResolver({
   name: "transactionsEnergyByBlock",
