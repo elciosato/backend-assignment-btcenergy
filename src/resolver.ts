@@ -1,6 +1,8 @@
 import { schemaComposer } from "graphql-compose";
+import dayjs from "dayjs";
 import {
   BlockTC,
+  DayConsumptionTC,
   RawBlockResponse,
   RawWalletResponse,
   WalletTC,
@@ -39,6 +41,48 @@ const transactionsEnergyByBlockResolver = schemaComposer.createResolver({
   },
 });
 
+const energyByNumOfDaysResolver = schemaComposer.createResolver({
+  name: "energyByNumOfDays",
+  type: [DayConsumptionTC],
+  args: {
+    numOfDays: "Int!",
+  },
+  resolve: async ({ source, args, context, info }) => {
+    const numOfDays = Number(args.numOfDays);
+    // Date without time
+    const today = dayjs().startOf("day");
+
+    // Result
+    let energyPerDay = [];
+
+    // For loop per day
+    for (let nDay = 0; nDay < numOfDays; nDay++) {
+      // Day subtraction
+      const currentDay = today.subtract(nDay, "day");
+
+      // Blockchain API per day
+      const { data: blocks, status: blocksStatus } = await blockchainApi.get<
+        [RawBlockResponse]
+      >(`/blocks/${currentDay.valueOf()}?format=json`);
+
+      // For loop per block - retrieve consumption per block
+      let size = 0;
+      for (let block of blocks) {
+        const { data } = await blockchainApi.get<RawBlockResponse>(
+          `/rawblock/${block.hash}`
+        );
+        size = size + Number(data.size);
+      }
+
+      energyPerDay.push({
+        date: currentDay.format("YYYY-MM-DD"),
+        energyConsumption: size * ENERGY_COST,
+      });
+    }
+    return energyPerDay;
+  },
+});
+
 const totalEnergyByWalletResolver = schemaComposer.createResolver({
   name: "totalEnergyByWallet",
   type: WalletTC,
@@ -47,7 +91,6 @@ const totalEnergyByWalletResolver = schemaComposer.createResolver({
   },
   resolve: async ({ source, args, context, info }) => {
     const { walletAddress } = args;
-    console.log(walletAddress);
     const { data, status } = await blockchainApi.get<RawWalletResponse>(
       `/rawaddr/${walletAddress}`
     );
@@ -66,4 +109,8 @@ const totalEnergyByWalletResolver = schemaComposer.createResolver({
   },
 });
 
-export { transactionsEnergyByBlockResolver, totalEnergyByWalletResolver };
+export {
+  transactionsEnergyByBlockResolver,
+  energyByNumOfDaysResolver,
+  totalEnergyByWalletResolver,
+};
