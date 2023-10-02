@@ -1,6 +1,6 @@
 import { schemaComposer } from "graphql-compose";
 import { BlockTC } from "./types";
-import axios from "axios";
+import { blockchainApi } from "./blockchainApi";
 
 const ENERGY_COST = 4.56;
 
@@ -23,8 +23,8 @@ const transactionsEnergyByBlockResolver = schemaComposer.createResolver({
   },
   resolve: async ({ source, args, context, info }) => {
     const { blockHash } = args;
-    const { data, status } = await axios.get<RawBlockResponse>(
-      `https://blockchain.info/rawblock/${blockHash}`
+    const { data, status } = await blockchainApi.get<RawBlockResponse>(
+      `/rawblock/${blockHash}`
     );
 
     const transactions = data.tx.map((t) => {
