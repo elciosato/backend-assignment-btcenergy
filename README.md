@@ -73,8 +73,53 @@ be able to perform the following operations (already sorted by priority):
   "query": "{energyByNumOfDays(numOfDays: 1) {date, energyConsumption}}"
 }
 ```
-- Advanced Feature: Optimize the number of calls made to the Blockchain API to avoid asking for the
-  same information multiple times.
+- Advanced Feature: Optimize the number of calls made to the Blockchain API to avoid asking for the same information multiple times.
+```javascript
+// Redis as local cache (file: resolver.ts)
+...
+try {
+  //  Get Redis Client connection
+  redisClient = await getRedisClient(redisClient);
+  // Prefix redisKey 
+  const redisKey = `energyByWallet-${walletAddress}`;
+  let results;
+
+  // Try to get cached information
+  const cachedResult = await redisClient.get(redisKey);
+
+  if (cachedResult) {
+    // Return cached information
+    results = JSON.parse(cachedResult);
+  } else {
+    // Information is not in the cache.
+    // Retrieve information from the API
+    const { data } = await blockchainApi.get<RawWalletResponse>(
+      `/rawaddr/${walletAddress}`
+    );
+
+    let size = 0;
+    data.txs.forEach((t) => {
+      size = size + Number(t.size);
+    });
+
+    results = {
+      walletAddress: data.address,
+      energyConsumption: size * ENERGY_COST,
+      size,
+    };
+    // Save the information in the cache
+    await redisClient.set(redisKey, JSON.stringify(results), {
+      EX: 60 * 30, // 30 min
+      NX: true,
+    });
+  }
+  return results;
+} catch (err) {
+  console.error(err);
+  throw err;
+}
+...
+```
 - Expert Feature: Provide the total energy consumption of all transactions performed by a specific wallet address.
 ```bash
 # Post Request: http://localhost:4000/graphql
